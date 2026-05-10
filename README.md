@@ -199,6 +199,7 @@ For production deployment, implement:
 ## 📝 License
 
 This project was developed for BGI Hackathon 2026.
+live link :- fresh-code-farmer.vercel.app
 
 ## 👨‍💻 Team
 

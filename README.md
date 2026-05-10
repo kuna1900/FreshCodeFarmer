@@ -2,7 +2,7 @@
 
 > BGI Hackathon 2026 - Agriculture, FoodTech & Rural Innovation  
 > Problem Statement: BT3P2 - Direct Farmer-To-Consumer Digital Marketplace Platform
-
+live link :- fresh-code-farmer.vercel.app 
 ## 🌾 Overview
 
 **FreshCode Farmers** is a modern, full-stack agriculture marketplace web application that connects farmers directly with consumers, eliminating middlemen and ensuring fair pricing for both parties. The platform empowers farmers with direct market access while providing consumers with fresh, affordable, and transparent produce sourcing.

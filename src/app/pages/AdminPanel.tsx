@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import {BarChart, Bar, XAxis,YAxis, Tooltip, ResponsiveContainer} from 'recharts';
+import {LineChart, CartesianGrid,
+Line,
+XAxis,
+YAxis,
+Tooltip,
+ResponsiveContainer} from 'recharts';
 import { useNavigate } from 'react-router';
 import { Users, Package, ShoppingCart, TrendingUp, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -117,22 +122,21 @@ const handleDeleteReview = (reviewId: number) => {
           <div className="h-80">
 
             <ResponsiveContainer width="100%" height="100%">
+<LineChart data={chartData}>
+<CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="name" />
 
-              <BarChart data={chartData}>
+  <YAxis tickCount={6}/>
 
-                <XAxis dataKey="name" />
+  <Tooltip />
 
-                <YAxis />
+  <Line
+    type="monotone"
+    dataKey="value"
+    strokeWidth={4}
+  />
 
-                <Tooltip />
-
-                <Bar
-                  dataKey="value"
-                  radius={[10, 10, 0, 0]}
-                />
-
-              </BarChart>
-
+</LineChart>
             </ResponsiveContainer>
 
           </div>

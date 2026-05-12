@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router';
 import { Plus, Edit, Trash2, Package, TrendingUp, IndianRupee, Leaf } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import { predictPrice } from '../utils/pricePrediction';
+import axios from 'axios';
 
 
 interface Product {
@@ -35,6 +37,7 @@ export function FarmerDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
+  const [language, setLanguage] =useState("en");
   const [editingProduct, setEditingProduct] =
   useState<any>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -48,7 +51,116 @@ const [formData, setFormData] = useState({
   farmerName: '',
   mobile: '',
   location: '',
+  address: '',
 });
+
+const [states, setStates] =
+  useState<any[]>([]);
+
+const [districts, setDistricts] =
+  useState<any[]>([]);
+
+const [villages, setVillages] =
+  useState<any[]>([]);
+
+const [selectedState, setSelectedState] =
+  useState('');
+
+const [selectedDistrict, setSelectedDistrict] =
+  useState('');
+const [predictedPrice, setPredictedPrice] =
+  useState<number | null>(null);
+
+const [bankDetails, setBankDetails] =
+  useState({
+
+    accountNumber: '',
+
+    ifsc: '',
+
+    holderName: ''
+
+  });
+
+const [withdrawAmount, setWithdrawAmount] =
+  useState('');
+
+const [kycDone, setKycDone] =
+  useState(false);
+const translations: any = {
+
+  en: {
+    title: "Farmer Dashboard",
+    subtitle: "Manage your farm products",
+    add: "Add Product",
+    products: "Products",
+    orders: "Orders",
+    revenue: "Revenue"
+  },
+
+  hi: {
+    title: "किसान डैशबोर्ड",
+    subtitle: "अपने उत्पाद प्रबंधित करें",
+    add: "प्रोडक्ट जोड़ें",
+    products: "उत्पाद",
+    orders: "ऑर्डर",
+    revenue: "कमाई"
+  },
+
+  mr: {
+    title: "शेतकरी डॅशबोर्ड",
+    subtitle: "तुमची उत्पादने व्यवस्थापित करा",
+    add: "उत्पादन जोडा",
+    products: "उत्पादने",
+    orders: "ऑर्डर्स",
+    revenue: "कमाई"
+  }
+
+};
+
+const t = translations[language];
+useEffect(() => {
+
+  axios
+
+    .get(
+      'https://countriesnow.space/api/v0.1/countries/states'
+    )
+
+    .then((res) => {
+
+      const india =
+        res.data.data.find(
+          (c: any) =>
+            c.name === 'India'
+        );
+
+      setStates(india.states);
+
+    });
+
+}, []);
+const fetchDistricts = async (
+  stateName: string
+) => {
+
+  const res = await axios.post(
+
+    'https://countriesnow.space/api/v0.1/countries/state/cities',
+
+    {
+
+      country: 'India',
+
+      state: stateName
+
+    }
+
+  );
+
+  setDistricts(res.data.data);
+
+};
   useEffect(() => {
     if (!user || user.role !== 'farmer') {
       navigate('/');
@@ -58,7 +170,37 @@ const [formData, setFormData] = useState({
     const allProducts = JSON.parse(localStorage.getItem('farmerProducts') || '[]');
     setProducts(allProducts.filter((p: Product) => p.farmerId === user.id));
   }, [user, navigate]);
+const handleKYCSubmit = () => {
 
+  localStorage.setItem(
+    "bankDetails",
+    JSON.stringify(bankDetails)
+  );
+
+  setKycDone(true);
+
+  toast.success(
+    "KYC Submitted Successfully ✅"
+  );
+
+};
+const handleWithdraw = () => {
+
+  if (!withdrawAmount) {
+
+    toast.error("Enter amount");
+
+    return;
+
+  }
+
+  toast.success(
+    `₹${withdrawAmount} Withdrawal Successful ✅`
+  );
+
+  setWithdrawAmount('');
+
+};
   const handleAddProduct = (e: React.FormEvent) => {
     e.preventDefault();
 const newProduct: Product = {
@@ -120,7 +262,7 @@ if (editingProduct) {
 
     setProducts([...products, newProduct]);
     setShowAddForm(false);
-    setFormData({ name: '', price: '', unit: 'kg', category: 'vegetables', stock: '' , image: '', farmerName: '',mobile: '',location: '',});
+    setFormData({ name: '', price: '', unit: 'kg', category: 'vegetables', stock: '' , image: '', farmerName: '',mobile: '',location: '',address: '',});
     toast.success('Product added successfully!');
   };
 
@@ -139,18 +281,65 @@ if (editingProduct) {
 
 };
   const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-  const myOrders = orders.filter((order: any) =>
-    order.items.some((item: any) => item.farmer === user?.name)
-  );
+const myOrders = orders.filter(
 
-  const totalEarnings = myOrders.reduce((sum: number, order: any) => sum + order.total, 0);
+  (order: any) =>
 
+    order.items.some(
+
+      (item: any) =>
+
+        item.farmer?.trim().toLowerCase() ===
+
+        user?.name?.trim().toLowerCase()
+
+    )
+
+);
+const totalEarnings = myOrders.reduce(
+
+  (sum: number, order: any) =>
+
+    sum + Number(order.total),
+
+  0
+
+);
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Farmer Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {user?.name}!</p>
+          <div className="mb-4">
+
+  <select
+
+    value={language}
+
+    onChange={(e) =>
+      setLanguage(e.target.value)
+    }
+
+    className="border px-4 py-2 rounded-lg"
+
+  >
+
+    <option value="en">
+      English
+    </option>
+
+    <option value="hi">
+      Hindi
+    </option>
+
+    <option value="mr">
+      Marathi
+    </option>
+
+  </select>
+
+</div>
+          <h1 className="text-4xl font-bold mb-2">{t.title}</h1>
+          <p className="text-gray-600">{t.subtitle}, {user?.name}!</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -160,7 +349,7 @@ if (editingProduct) {
                 <Package className="size-8 text-green-600" />
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Total Products</p>
+                <p className="text-gray-600 text-sm">{t.products}</p>
                 <p className="text-3xl font-bold">{products.length}</p>
               </div>
             </div>
@@ -172,7 +361,7 @@ if (editingProduct) {
                 <TrendingUp className="size-8 text-blue-600" />
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Total Orders</p>
+                <p className="text-gray-600 text-sm">{t.orders}</p>
                 <p className="text-3xl font-bold">{myOrders.length}</p>
               </div>
             </div>
@@ -184,7 +373,7 @@ if (editingProduct) {
                 <IndianRupee className="size-8 text-yellow-600" />
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Total Earnings</p>
+                <p className="text-gray-600 text-sm">{t.revenue}</p>
                 <p className="text-3xl font-bold">₹{totalEarnings}</p>
               </div>
             </div>
@@ -199,7 +388,7 @@ if (editingProduct) {
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-semibold"
             >
               <Plus className="size-5" />
-              Add Product
+              {t.add}
             </button>
           </div>
 
@@ -229,18 +418,113 @@ if (editingProduct) {
                     <option value="grains">Grains</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Price</label>
+                  <div>
+
+                  <label className="block text-sm font-medium mb-2">
+                    Price
+                  </label>
+
                   <input
+
                     type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
-                    required
-                    min="0"
-                    step="0.01"
+
+                    value={predictedPrice || formData.price}
+
+                    onChange={(e) => {
+
+                      setPredictedPrice('');
+
+                      setFormData({
+                        ...formData,
+                        price: e.target.value
+                      });
+
+                    }}
+
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+
                   />
+
+                  <button
+
+                    type="button"
+
+                    onClick={async () => {
+
+                      const result = await predictPrice(
+
+                        formData.category,
+
+                        Number(formData.stock)
+
+                      );
+
+                      setPredictedPrice(
+                        result.toString()
+                      );
+
+                      setFormData({
+                        ...formData,
+                        price: result.toString()
+                      });
+
+                      toast.success(
+                        "AI Price Predicted ✅"
+                      );
+
+                    }}
+
+                    className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg"
+
+                  >
+
+                    Predict AI Price
+
+                  </button>
+
+                  {predictedPrice && (
+
+                    <p className="text-green-600 font-semibold mt-2">
+
+                      🤖 AI Suggested Price:
+                      ₹{predictedPrice}
+
+                    </p>
+
+                  )}
+
                 </div>
+                <div>
+
+                <label className="block text-sm font-medium mb-2">
+                  Full Address
+                </label>
+
+                <textarea
+
+                  value={formData.address}
+
+                  onChange={(e) =>
+
+                    setFormData({
+
+                      ...formData,
+
+                      address: e.target.value
+
+                    })
+
+                  }
+
+                  rows={3}
+
+                  placeholder="Enter full farm address"
+
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+
+                />
+
+              </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Unit</label>
                   <select
@@ -303,24 +587,94 @@ if (editingProduct) {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Location
-                  </label>
+               <div>
 
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        location: e.target.value
-                      })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                </div>
+                <label className="block text-sm font-medium mb-2">
+                  State
+                </label>
+
+                <select
+
+                  value={selectedState}
+
+                  onChange={(e) => {
+
+                    setSelectedState(e.target.value);
+
+                    fetchDistricts(e.target.value);
+
+                  }}
+
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+
+                >
+
+                  <option value="">
+                    Select State
+                  </option>
+
+                  {states.map((state: any) => (
+
+                    <option
+                      key={state.name}
+                      value={state.name}
+                    >
+
+                      {state.name}
+
+                    </option>
+
+                  ))}
+
+                </select>
+
+              </div>
+
+              <div>
+
+                <label className="block text-sm font-medium mb-2">
+                  District / City
+                </label>
+
+                <select
+
+                  value={selectedDistrict}
+
+                  onChange={(e) => {
+
+                    setSelectedDistrict(e.target.value);
+
+                    setFormData({
+                      ...formData,
+                      location: e.target.value
+                    });
+
+                  }}
+
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+
+                >
+
+                  <option value="">
+                    Select District
+                  </option>
+
+                  {districts.map((district: any) => (
+
+                    <option
+                      key={district}
+                      value={district}
+                    >
+
+                      {district}
+
+                    </option>
+
+                  ))}
+
+                </select>
+
+              </div>
                 <div>
 
                   <label className="block text-sm font-medium mb-2">
@@ -435,7 +789,8 @@ if (editingProduct) {
                                 mobile: product.mobile || '',
 
                                 location: product.location || '',
-
+                                
+                                address: product.address || '',
                               });
 
                               setShowAddForm(true);
@@ -465,6 +820,134 @@ if (editingProduct) {
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-md">
+          <div className="bg-white rounded-2xl p-6 shadow-md mb-8">
+
+  <h2 className="text-2xl font-bold mb-6">
+    Farmer KYC & Withdrawal
+  </h2>
+
+  {!kycDone ? (
+
+    <div className="grid md:grid-cols-3 gap-4">
+
+      <input
+
+        type="text"
+
+        placeholder="Account Holder Name"
+
+        value={bankDetails.holderName}
+
+        onChange={(e) =>
+          setBankDetails({
+            ...bankDetails,
+            holderName: e.target.value
+          })
+        }
+
+        className="border px-4 py-2 rounded-lg"
+
+      />
+
+      <input
+
+        type="text"
+
+        placeholder="Bank Account Number"
+
+        value={bankDetails.accountNumber}
+
+        onChange={(e) =>
+          setBankDetails({
+            ...bankDetails,
+            accountNumber: e.target.value
+          })
+        }
+
+        className="border px-4 py-2 rounded-lg"
+
+      />
+
+      <input
+
+        type="text"
+
+        placeholder="IFSC Code"
+
+        value={bankDetails.ifsc}
+
+        onChange={(e) =>
+          setBankDetails({
+            ...bankDetails,
+            ifsc: e.target.value
+          })
+        }
+
+        className="border px-4 py-2 rounded-lg"
+
+      />
+
+      <button
+
+        onClick={handleKYCSubmit}
+
+        className="bg-green-600 text-white px-6 py-2 rounded-lg"
+
+      >
+
+        Submit KYC
+
+      </button>
+
+    </div>
+
+  ) : (
+
+    <div>
+
+      <p className="text-green-600 font-semibold mb-4">
+
+        ✅ KYC Verified
+
+      </p>
+
+      <div className="flex gap-4">
+
+        <input
+
+          type="number"
+
+          placeholder="Enter Withdrawal Amount"
+
+          value={withdrawAmount}
+
+          onChange={(e) =>
+            setWithdrawAmount(e.target.value)
+          }
+
+          className="border px-4 py-2 rounded-lg"
+
+        />
+
+        <button
+
+          onClick={handleWithdraw}
+
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg"
+
+        >
+
+          Withdraw
+
+        </button>
+
+      </div>
+
+    </div>
+
+  )}
+
+</div>
           <h2 className="text-2xl font-bold mb-6">Recent Orders</h2>
           {myOrders.length === 0 ? (
             <p className="text-gray-500 text-center py-8">No orders yet</p>

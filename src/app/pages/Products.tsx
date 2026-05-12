@@ -78,7 +78,8 @@ useEffect(() => {
       name: product.name,
       price: product.price,
       image: product.name,
-      farmer: product.farmer,
+      farmer: product.farmerName,
+      quantity: 1
     });
     toast.success(`${product.name} added to cart!`);
   };

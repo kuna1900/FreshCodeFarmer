@@ -1,17 +1,26 @@
+# dependencies
 node_modules
+backend/node_modules
+
+# production
 dist
+build
+
+# env files
 .env
 .env.local
+backend/.env
+
+# editor files
 .vscode
+.idea
+
+# system files
 .DS_Store
-coverage
+Thumbs.db
+
+# logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-node_modules
-dist
-.env
-.vscode
-backend/node_modules
-backend/.env

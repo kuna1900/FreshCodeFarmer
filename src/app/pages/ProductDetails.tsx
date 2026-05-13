@@ -15,6 +15,8 @@ const [rating, setRating] = useState(5);
 
 const [comment, setComment] = useState("");
   const [product, setProduct] = useState<any>(null);
+  const [recommendedProducts, setRecommendedProducts] =
+  useState<any[]>([]);
   useEffect(() => {
 
   const allReviews = JSON.parse(
@@ -28,6 +30,37 @@ const [comment, setComment] = useState("");
   setReviews(productReviews);
 
 }, [id]);
+useEffect(() => {
+
+  const allProducts = JSON.parse(
+
+    localStorage.getItem(
+      'farmerProducts'
+    ) || '[]'
+
+  );
+
+  if (product) {
+
+    const recommendations = allProducts.filter(
+
+      (item: any) =>
+
+        item.category === product.category &&
+
+        item.id !== product.id
+
+    );
+
+    setRecommendedProducts(
+
+      recommendations.slice(0, 4)
+
+    );
+
+  }
+
+}, [product]);
 
 const handleReview = () => {
 
@@ -257,6 +290,69 @@ const handleDeleteReview = (id: number) => {
         </div>
 
         <div className="mt-12 bg-white rounded-3xl p-8 shadow-lg">
+          <div className="mt-12">
+
+            <h2 className="text-3xl font-bold mb-6">
+
+              🤖 AI Recommended Products
+
+            </h2>
+
+            <div className="grid md:grid-cols-4 gap-6">
+
+              {recommendedProducts.map(
+
+                (item) => (
+
+                  <div
+
+                    key={item.id}
+
+                    className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all"
+
+                  >
+
+                    <img
+
+                      src={item.image}
+
+                      alt={item.name}
+
+                      className="w-full h-40 object-cover"
+
+                    />
+
+                    <div className="p-4">
+
+                      <h3 className="font-bold text-lg">
+
+                        {item.name}
+
+                      </h3>
+
+                      <p className="text-green-600 font-semibold">
+
+                        ₹{item.price}
+
+                      </p>
+
+                      <p className="text-gray-500 text-sm">
+
+                        {item.category}
+
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                )
+
+              )}
+
+            </div>
+
+          </div>
           <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
           <div className="space-y-4">
             {[

@@ -14,6 +14,13 @@ export function Products() {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
+  const [minPrice, setMinPrice] =
+  useState(0);
+
+const [maxPrice, setMaxPrice] =
+  useState(1000);
+  const [showFilters, setShowFilters] =
+  useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [wishlist, setWishlist] = useState<any[]>([]);
   const { addToCart } = useCart();
@@ -35,11 +42,44 @@ useEffect(() => {
 
   const categories = ['all', 'vegetables', 'fruits', 'dairy', 'grains'];
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+const filteredProducts = products.filter(
+
+  (product) => {
+
+    const matchesSearch =
+
+      product.name
+        .toLowerCase()
+        .includes(
+          searchQuery.toLowerCase()
+        );
+
+    const matchesCategory =
+
+      selectedCategory === 'all' ||
+
+      product.category ===
+      selectedCategory;
+
+    const matchesPrice =
+
+      product.price >= minPrice &&
+
+      product.price <= maxPrice;
+
+    return (
+
+      matchesSearch &&
+
+      matchesCategory &&
+
+      matchesPrice
+
+    );
+
+  }
+
+);
 
 
   const toggleWishlist = (product: any) => {
@@ -91,7 +131,25 @@ useEffect(() => {
           <h1 className="text-4xl font-bold mb-4">Fresh Products</h1>
           <p className="text-gray-600">Browse our selection of farm-fresh produce</p>
         </div>
+        <div className="flex justify-between items-center mb-6">
 
+          <button
+
+            onClick={() =>
+              setShowFilters(!showFilters)
+            }
+
+            className="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold shadow-md hover:bg-green-700 transition-all flex items-center gap-2"
+
+          >
+
+            <Filter className="size-5" />
+
+            Filters
+
+          </button>
+
+        </div>
         <div className="mb-8">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 size-5" />
@@ -105,21 +163,165 @@ useEffect(() => {
           </div>
         </div>
 
-        <div className="flex gap-3 mb-8 overflow-x-auto pb-2">
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-6 py-2 rounded-full font-semibold whitespace-nowrap transition-all ${
-                selectedCategory === category
-                  ? 'bg-green-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </button>
-          ))}
+            {showFilters && (
+
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border">
+
+            <h2 className="text-2xl font-bold mb-6">
+
+              Product Filters
+
+            </h2>
+
+            <div className="grid md:grid-cols-3 gap-6">
+
+              <div>
+
+                <label className="block mb-2 font-semibold">
+
+                  Category
+
+                </label>
+
+                <select
+
+                  value={selectedCategory}
+
+                  onChange={(e) =>
+                    setSelectedCategory(
+                      e.target.value
+                    )
+                  }
+
+                  className="w-full border px-4 py-3 rounded-xl"
+
+                >
+
+                  {categories.map((category) => (
+
+                    <option
+                      key={category}
+                      value={category}
+                    >
+
+                      {category}
+
+                    </option>
+
+                  ))}
+
+                </select>
+
+              </div>
+
+              <div>
+
+                <label className="block mb-2 font-semibold">
+
+                  Min Price
+
+                </label>
+
+                <input
+
+                  type="number"
+
+                  value={minPrice}
+
+                  onChange={(e) =>
+                    setMinPrice(
+                      Number(e.target.value)
+                    )
+                  }
+
+                  className="w-full border px-4 py-3 rounded-xl"
+
+                />
+
+              </div>
+
+              <div>
+
+                <label className="block mb-2 font-semibold">
+
+                  Max Price
+
+                </label>
+
+                <input
+
+                  type="number"
+
+                  value={maxPrice}
+
+                  onChange={(e) =>
+                    setMaxPrice(
+                      Number(e.target.value)
+                    )
+                  }
+
+                  className="w-full border px-4 py-3 rounded-xl"
+
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+        )}
+        <div className="grid md:grid-cols-2 gap-4 mb-8">
+
+        <div>
+
+          <label className="block mb-2 font-medium">
+            Min Price
+          </label>
+
+          <input
+
+            type="number"
+
+            value={minPrice}
+
+            onChange={(e) =>
+              setMinPrice(
+                Number(e.target.value)
+              )
+            }
+
+            className="w-full border px-4 py-2 rounded-lg"
+
+          />
+
         </div>
+
+        <div>
+
+          <label className="block mb-2 font-medium">
+            Max Price
+          </label>
+
+          <input
+
+            type="number"
+
+            value={maxPrice}
+
+            onChange={(e) =>
+              setMaxPrice(
+                Number(e.target.value)
+              )
+            }
+
+            className="w-full border px-4 py-2 rounded-lg"
+
+          />
+
+        </div>
+
+      </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredProducts.map(product => (

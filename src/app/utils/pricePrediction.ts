@@ -21,38 +21,90 @@ export async function predictPrice(
 
   }
 
-  let basePrice = 50;
+  const trainingData = [
 
-  switch (category) {
+    {
+      category: 'vegetables',
+      stock: 10,
+      price: 60
+    },
 
-    case 'vegetables':
-      basePrice = 40;
-      break;
+    {
+      category: 'vegetables',
+      stock: 50,
+      price: 35
+    },
 
-    case 'fruits':
-      basePrice = 80;
-      break;
+    {
+      category: 'fruits',
+      stock: 20,
+      price: 120
+    },
 
-    case 'dairy':
-      basePrice = 60;
-      break;
+    {
+      category: 'fruits',
+      stock: 80,
+      price: 70
+    },
 
-    case 'grains':
-      basePrice = 50;
-      break;
+    {
+      category: 'dairy',
+      stock: 30,
+      price: 65
+    },
 
-    default:
-      basePrice = 50;
+    {
+      category: 'grains',
+      stock: 100,
+      price: 40
+    }
+
+  ];
+
+  const categoryData = trainingData.filter(
+
+    (item) =>
+
+      item.category === category
+
+  );
+
+  if (categoryData.length === 0) {
+
+    return 50;
 
   }
 
-  const predictedPrice =
+  let nearest = categoryData[0];
 
-    basePrice - stock * 0.3;
+  let minDiff = Math.abs(
 
-  return Math.max(
-    Math.round(predictedPrice),
-    10
+    stock - nearest.stock
+
   );
+
+  categoryData.forEach((item) => {
+
+    const diff = Math.abs(
+
+      stock - item.stock
+
+    );
+
+    if (diff < minDiff) {
+
+      minDiff = diff;
+
+      nearest = item;
+
+    }
+
+  });
+
+  const randomVariation =
+
+    Math.floor(Math.random() * 10);
+
+  return nearest.price - randomVariation;
 
 }

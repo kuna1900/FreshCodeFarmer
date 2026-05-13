@@ -4,6 +4,7 @@ import { CreditCard, Smartphone, Banknote, CheckCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import qrCode from '../assets/upi-qr.png'
 
 export function Checkout() {
   const { cart, total, clearCart } = useCart();
@@ -15,6 +16,8 @@ export function Checkout() {
   const [pincode, setPincode] = useState('');
   const [phone, setPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cod'>('upi');
+  const [paymentSuccess, setPaymentSuccess] =
+  useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [coupon, setCoupon] = useState('');
@@ -48,7 +51,19 @@ const applyCoupon = () => {
 
 };
 
+const handleFakePayment = () => {
 
+  setTimeout(() => {
+
+    setPaymentSuccess(true);
+
+    toast.success(
+      'Payment Successful ✅'
+    );
+
+  }, 2000);
+
+};
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -234,6 +249,48 @@ if (paymentMethod === 'cod') {
 
           <div className="bg-white rounded-2xl p-6 shadow-md">
             <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
+            <div className="bg-white rounded-2xl shadow-md p-6 mt-6">
+
+              <h2 className="text-2xl font-bold mb-4">
+                💳 UPI Payment
+              </h2>
+
+              <div className="flex flex-col items-center">
+
+                <img
+                  src={qrCode}
+                  alt="UPI QR"
+                  className="w-64 h-64 object-cover rounded-2xl border"
+                />
+
+                <p className="mt-4 text-gray-600 text-center">
+                  Scan QR using any UPI app
+                </p>
+
+                <div className="mt-4 bg-gray-100 px-4 py-2 rounded-lg font-semibold">
+                  freshcodefarmer@upi
+                </div>
+
+                {!paymentSuccess ? (
+
+                  <button
+                    onClick={handleFakePayment}
+                    className="mt-6 bg-green-600 text-white px-8 py-3 rounded-xl hover:bg-green-700 transition-all font-semibold"
+                  >
+                    Verify Payment
+                  </button>
+
+                ) : (
+
+                  <div className="mt-6 text-green-600 font-bold text-xl">
+                    ✅ Payment Verified
+                  </div>
+
+                )}
+
+              </div>
+
+            </div>
             <div className="flex gap-3 mb-4">
 
             <input

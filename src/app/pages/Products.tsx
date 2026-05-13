@@ -271,6 +271,37 @@ const filteredProducts = products.filter(
           </div>
 
         )}
+        <div className="flex gap-3 mb-8 overflow-x-auto pb-2 mt-6">
+
+          {categories.map(category => (
+
+            <button
+
+              key={category}
+
+              onClick={() =>
+                setSelectedCategory(category)
+              }
+
+              className={`px-6 py-2 rounded-full font-semibold whitespace-nowrap transition-all ${
+                selectedCategory === category
+
+                  ? 'bg-green-600 text-white'
+
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+
+              }`}
+
+            >
+
+              {category.charAt(0).toUpperCase() +
+                category.slice(1)}
+
+            </button>
+
+          ))}
+
+        </div>
         <div className="grid md:grid-cols-2 gap-4 mb-8">
 
         <div>
